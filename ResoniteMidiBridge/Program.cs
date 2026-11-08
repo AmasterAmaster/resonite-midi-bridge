@@ -53,6 +53,7 @@ try
     switch (startupMode)
     {
         case StartupMode.Live:
+
             Logger.Info(
                 "Starting Live MIDI Mode");
 
@@ -66,9 +67,9 @@ try
             Logger.Info("Press Q to quit.");
             Logger.Info("");
 
-            bool running = true;
+            bool liveRunning = true;
 
-            while (running)
+            while (liveRunning)
             {
                 var key =
                     Console.ReadKey(true);
@@ -77,11 +78,21 @@ try
                 {
                     case ConsoleKey.Q:
 
-                        running = false;
+                        liveRunning = false;
 
                         break;
                 }
             }
+
+            break;
+
+        case StartupMode.File:
+
+            Logger.Info(
+                "Starting MIDI File Mode");
+
+            await RunFileModeAsync(
+                webSocketServer);
 
             break;
     }
@@ -136,11 +147,42 @@ static async Task RunFileModeAsync(
 
     string? filePath =
         Console.ReadLine();
+    filePath = filePath?.Trim();
+
+    if (!string.IsNullOrWhiteSpace(filePath))
+    {
+        filePath =
+            filePath.Trim('"');
+    }
 
     if (string.IsNullOrWhiteSpace(filePath))
     {
         Logger.Error(
             "No file path provided.");
+
+        return;
+    }
+
+    if (!File.Exists(filePath))
+    {
+        Logger.Error(
+            "File does not exist.");
+
+        return;
+    }
+
+    var extension =
+        Path.GetExtension(filePath);
+
+    if (!extension.Equals(
+            ".mid",
+            StringComparison.OrdinalIgnoreCase) &&
+        !extension.Equals(
+            ".midi",
+            StringComparison.OrdinalIgnoreCase))
+    {
+        Logger.Error(
+            "File is not a MIDI file.");
 
         return;
     }
@@ -152,6 +194,18 @@ static async Task RunFileModeAsync(
 
         return;
     }
+
+    var status =
+    player.GetStatus();
+
+    Logger.Success(
+        $"Loaded {status.FileName}");
+
+    Logger.Info(
+        $"Duration: {status.Duration:mm\\:ss}");
+
+    Logger.Info(
+        $"Total Notes: {status.TotalNotes}");
 
     controller.PrintControls();
 
