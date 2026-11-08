@@ -1,0 +1,11 @@
+{
+    "version": "2.0.0",
+    "label": "Build Project",
+    "type": "shell",
+    "command": "dotnet",
+    "args": [
+        "build",
+        "${workspaceFolder}/resonite-midi-bridge.csproj"
+    ],
+    "problemMatcher": "$msCompile"
+}
