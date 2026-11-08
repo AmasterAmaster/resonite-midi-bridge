@@ -129,12 +129,12 @@ public class WebSocketServer
 
     public async Task BroadcastAsync(string message)
     {
-        await _clientManager.broadcastAsync(message);
+        await _clientManager.BroadcastAsync(message);
     }
 
     public void Stop()
     {
-        _wsRunning = false;
+        _isRunning = false;
 
         _listener.Stop();
 
