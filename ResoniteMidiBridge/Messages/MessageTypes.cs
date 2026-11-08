@@ -7,14 +7,21 @@ public enum MessageTypes
     ControlChange,
     PitchBend,
 
-    DeviceConnected,
-    DeviceDisconnected,
-
     TransportPlay,
     TransportStop,
     TransportPause,
 
     TempoChanged,
 
-    Unknown
+    Unknown,
+
+    PlaybackStarted,
+    PlaybackPaused,
+    PlaybackStopped,
+    PlaybackFinished,
+
+    PlaybackPosition,
+
+    DeviceConnected,
+    DeviceDisconnected
 }

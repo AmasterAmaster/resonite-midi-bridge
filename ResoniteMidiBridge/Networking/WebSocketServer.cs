@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.WebSockets;
 using System.Text;
+using ResoniteMidiBridge.Messages;
 
 namespace ResoniteMidiBridge.Networking;
 
@@ -139,5 +140,12 @@ public class WebSocketServer
         _listener.Stop();
 
         Console.WriteLine("WebSocket server stopped.");
+    }
+
+    public async Task BroadcastMidiMessageAsync(
+    MidiMessage message)
+    {
+        await BroadcastAsync(
+            message.ToJson());
     }
 }
