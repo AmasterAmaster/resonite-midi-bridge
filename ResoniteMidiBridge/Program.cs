@@ -1,26 +1,84 @@
+using ResoniteMidiBridge.Config;
 using ResoniteMidiBridge.MIDI;
 using ResoniteMidiBridge.Networking;
+using ResoniteMidiBridge.Utilities;
 
-Console.WriteLine("=== Resonite MIDI Bridge ===");
+Console.Title = "Resonite MIDI Bridge";
+
+Logger.Info("=================================");
+Logger.Info("Starting Resonite MIDI Bridge");
+Logger.Info("=================================");
+
+var settings = Settings.Instance;
+
+Logger.Info(
+    $"WebSocket Endpoint: {settings.GetWebSocketUrl()}");
+
+var webSocketServer =
+    new WebSocketServer(
+        settings.GetWebSocketUrl());
 
 var midiManager = new MidiManager();
-var midiHandler = new MidiEventHandler();
-var wsServer =
-    new WebSocketServer("http://localhost:8080/ws/");
 
-midiHandler.Subscribe(midiManager);
+var midiEventHandler =
+    new MidiEventHandler(webSocketServer);
 
-midiManager.Initialize();
+midiEventHandler.Subscribe(midiManager);
 
-_ = Task.Run(async () =>
+var webSocketTask = Task.Run(async () =>
 {
-    await wsServer.StartAsync();
+    try
+    {
+        await webSocketServer.StartAsync();
+    }
+    catch (Exception ex)
+    {
+        Logger.Error(
+            $"WebSocket server failed: {ex.Message}");
+    }
 });
 
-Console.WriteLine("Listening for MIDI events...");
-Console.WriteLine("Press ENTER to quit.\n");
+try
+{
+    midiManager.Initialize();
+
+    Logger.Success(
+        "MIDI system initialized successfully.");
+}
+catch (Exception ex)
+{
+    Logger.Error(
+        $"Failed to initialize MIDI system: {ex.Message}");
+}
+
+Logger.Info("");
+Logger.Info("Bridge is running.");
+Logger.Info("Waiting for MIDI events...");
+Logger.Info("Press ENTER to shutdown.");
+Logger.Info("");
 
 Console.ReadLine();
 
-wsServer.Stop();
-midiManager.Shutdown();
+Logger.Info("Shutdown requested...");
+
+try
+{
+    midiManager.Shutdown();
+}
+catch (Exception ex)
+{
+    Logger.Error(
+        $"Error during MIDI shutdown: {ex.Message}");
+}
+
+try
+{
+    webSocketServer.Stop();
+}
+catch (Exception ex)
+{
+    Logger.Error(
+        $"Error during WebSocket shutdown: {ex.Message}");
+}
+
+Logger.Success("Shutdown complete.");
