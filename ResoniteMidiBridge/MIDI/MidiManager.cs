@@ -22,6 +22,7 @@ public class MidiManager
 
         foreach (var device in devices)
         {
+            Console.WriteLine($"Found Device: {device.Name}");
             RegisterDevice(device);
         }
 
