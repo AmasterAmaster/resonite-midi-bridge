@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.WebSockets;
 using System.Text;
 using ResoniteMidiBridge.Messages;
+using ResoniteMidiBridge.Utilities;
 
 namespace ResoniteMidiBridge.Networking;
 
@@ -90,6 +91,20 @@ public class WebSocketServer
                 if (result.MessageType ==
                     WebSocketMessageType.Close)
                 {
+                    Logger.Warning(
+                        "WebSocket close requested.");
+
+                    try
+                    {
+                        await socket.CloseAsync(
+                            WebSocketCloseStatus.NormalClosure,
+                            "Closing",
+                            CancellationToken.None);
+                    }
+                    catch
+                    {
+                    }
+
                     break;
                 }
 
@@ -103,8 +118,14 @@ public class WebSocketServer
 
                 await HandleIncomingMessage(message);
             }
-            catch
+            catch (Exception ex)
             {
+                Logger.Error(
+                    $"Receive Loop Error: {ex}");
+
+                Logger.Warning(
+                    $"Socket State: {socket.State}");
+
                 break;
             }
         }

@@ -1,5 +1,6 @@
 using System.Net.WebSockets;
 using System.Text;
+using ResoniteMidiBridge.Utilities;
 
 namespace ResoniteMidiBridge.Networking;
 
@@ -9,19 +10,27 @@ public class ClientManager
 
     public IReadOnlyCollection<WebSocket> Clients => _clients;
 
+    private readonly object _clientLock = new();
+
     public void AddClient(WebSocket client)
     {
-        _clients.Add(client);
+        lock (_clientLock)
+        {
+            _clients.Add(client);
+        }
 
-        Console.WriteLine(
+        Logger.Info(
             $"Client connected. Total clients: {_clients.Count}");
     }
 
     public void RemoveClient(WebSocket client)
     {
-        _clients.Remove(client);
+        lock (_clientLock)
+        {
+            _clients.Remove(client);
+        }
 
-        Console.WriteLine(
+        Logger.Info(
             $"Client disconnected. Total clients: {_clients.Count}");
     }
 
@@ -34,8 +43,18 @@ public class ClientManager
 
         var disconnectedClients = new List<WebSocket>();
 
-        foreach (var client in _clients)
+        List<WebSocket> clients;
+
+        lock (_clientLock)
         {
+            clients = _clients.ToList();
+        }
+
+        foreach (var client in clients)
+        {
+            Logger.Debug(
+                $"Broadcasting to {clients.Count} clients");
+
             try
             {
                 if (client.State != WebSocketState.Open)
@@ -50,8 +69,11 @@ public class ClientManager
                     true,
                     CancellationToken.None);
             }
-            catch
+            catch (Exception ex)
             {
+                Logger.Error(
+                    $"Client send failed: {ex.Message}");
+
                 disconnectedClients.Add(client);
             }
         }

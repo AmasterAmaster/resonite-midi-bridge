@@ -70,6 +70,7 @@ public class MidiFilePlayer
 
             _notes = _midiFile
                 .GetNotes()
+                //.GetTimedEvents()
                 .OrderBy(n => n.Time)
                 .ToList();
 
@@ -291,6 +292,21 @@ public class MidiFilePlayer
 
             if (delayMs > 0)
             {
+                Logger.Debug(
+                    $"Playing note {_currentNoteIndex}/{_notes.Count}");
+
+                Logger.Debug(
+                    $"Waiting {delayMs} ms until next note");
+
+                Logger.Debug(
+                    $"Index={_currentNoteIndex}");
+
+                Logger.Debug(
+                    $"Delta={deltaTime}");
+
+                Logger.Debug(
+                    $"Delay={delayMs}");
+
                 await Task.Delay(
                     delayMs,
                     token);
