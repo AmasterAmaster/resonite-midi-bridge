@@ -34,6 +34,9 @@ public class MidiFilePlayer
 
     public string LoadedFile => _loadedFile;
 
+    public string FileName =>
+    Path.GetFileName(_loadedFile);
+
     public bool IsLoaded => _midiFile != null;
 
     public int CurrentNoteIndex
@@ -47,6 +50,9 @@ public class MidiFilePlayer
 
     private TimeSpan _duration =
     TimeSpan.Zero;
+
+    public bool IsFinished =>
+    _state == PlaybackState.Finished;
 
     public MidiFilePlayer(WebSocketServer webSocketServer)
     {
@@ -344,7 +350,7 @@ public class MidiFilePlayer
             _state = PlaybackState.Finished;
 
             Logger.Success(
-                "MIDI playback completed.");
+                $"Playback completed: {Path.GetFileName(_loadedFile)}");
         }
     }
 

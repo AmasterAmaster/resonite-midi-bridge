@@ -16,14 +16,10 @@ public static class StartupMenu
             Console.WriteLine();
             Console.WriteLine("Select Startup Mode:");
             Console.WriteLine();
+            Console.WriteLine("  [1] Live MIDI Device");
+            Console.WriteLine("  [2] MIDI File Playback");
+            Console.WriteLine();
             Console.WriteLine("  [0] Exit");
-            Console.WriteLine("      Close the bridge");
-            Console.WriteLine();
-            Console.WriteLine("  [1] Live Mode");
-            Console.WriteLine("      Use a physical MIDI device");
-            Console.WriteLine();
-            Console.WriteLine("  [2] File Mode");
-            Console.WriteLine("      Load and play a MIDI file");
             Console.WriteLine();
             Console.Write("Selection: ");
 

@@ -15,6 +15,14 @@ public class PlaybackController
 
     public bool IsLoaded => _player.IsLoaded;
 
+    public enum PlaybackFinishedAction
+    {
+        Replay,
+        LoadNewFile,
+        MainMenu,
+        Quit
+    }
+
     public async Task PlayAsync()
     {
         if (!IsLoaded)
@@ -134,5 +142,40 @@ public class PlaybackController
         Console.WriteLine("[I] Info");
         Console.WriteLine("[Q] Quit");
         Console.WriteLine();
+    }
+
+    public PlaybackFinishedAction ShowFinishedMenu()
+    {
+        Console.WriteLine();
+        Console.WriteLine("=================================");
+        Console.WriteLine(" Playback Complete");
+        Console.WriteLine("=================================");
+        Console.WriteLine();
+        Console.WriteLine("[P] Play Again");
+        Console.WriteLine("[L] Load New MIDI File");
+        Console.WriteLine("[M] Main Menu");
+        Console.WriteLine("[Q] Quit");
+        Console.WriteLine();
+
+        while (true)
+        {
+            var key =
+                Console.ReadKey(true);
+
+            switch (key.Key)
+            {
+                case ConsoleKey.P:
+                    return PlaybackFinishedAction.Replay;
+
+                case ConsoleKey.L:
+                    return PlaybackFinishedAction.LoadNewFile;
+
+                case ConsoleKey.M:
+                    return PlaybackFinishedAction.MainMenu;
+
+                case ConsoleKey.Q:
+                    return PlaybackFinishedAction.Quit;
+            }
+        }
     }
 }

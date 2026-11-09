@@ -7,35 +7,17 @@ using ResoniteMidiBridge.Utilities;
 
 Console.Title = "Resonite MIDI Bridge";
 
-var startupMode = StartupMenu.Show();
-if (startupMode == StartupMode.Exit)
-{
-    Logger.Info("Exiting...");
-
-    return;
-}
-
 Logger.Info("=================================");
 Logger.Info("Starting Resonite MIDI Bridge");
 Logger.Info("=================================");
 
 var settings = Settings.Instance;
 
-Logger.Info(
-    $"WebSocket Endpoint: {settings.GetWebSocketUrl()}");
-
 var webSocketServer =
     new WebSocketServer(
         settings.GetWebSocketUrl());
 
-var midiManager = new MidiManager();
-
-var midiEventHandler =
-    new MidiEventHandler(webSocketServer);
-
-midiEventHandler.Subscribe(midiManager);
-
-var webSocketTask = Task.Run(async () =>
+_ = Task.Run(async () =>
 {
     try
     {
@@ -44,52 +26,33 @@ var webSocketTask = Task.Run(async () =>
     catch (Exception ex)
     {
         Logger.Error(
-            $"WebSocket server failed: {ex.Message}");
+            $"WebSocket server failed: {ex}");
     }
 });
 
-try
+bool applicationRunning = true;
+
+while (applicationRunning)
 {
+    var startupMode =
+        StartupMenu.Show();
+
     switch (startupMode)
     {
+        case StartupMode.Exit:
+
+            applicationRunning = false;
+
+            break;
+
         case StartupMode.Live:
 
-            Logger.Info(
-                "Starting Live MIDI Mode");
-
-            midiManager.Initialize();
-
-            Logger.Success(
-                "Live MIDI system initialized.");
-
-            Logger.Info("");
-            Logger.Info("Bridge is running.");
-            Logger.Info("Press Q to quit.");
-            Logger.Info("");
-
-            bool liveRunning = true;
-
-            while (liveRunning)
-            {
-                var key =
-                    Console.ReadKey(true);
-
-                switch (key.Key)
-                {
-                    case ConsoleKey.Q:
-
-                        liveRunning = false;
-
-                        break;
-                }
-            }
+            await RunLiveModeAsync(
+                webSocketServer);
 
             break;
 
         case StartupMode.File:
-
-            Logger.Info(
-                "Starting MIDI File Mode");
 
             await RunFileModeAsync(
                 webSocketServer);
@@ -97,23 +60,8 @@ try
             break;
     }
 }
-catch (Exception ex)
-{
-    Logger.Error(
-        $"Startup failed: {ex.Message}");
-}
 
 Logger.Info("Shutdown requested...");
-
-try
-{
-    midiManager.Shutdown();
-}
-catch (Exception ex)
-{
-    Logger.Error(
-        $"Error during MIDI shutdown: {ex.Message}");
-}
 
 try
 {
@@ -122,13 +70,10 @@ try
 catch (Exception ex)
 {
     Logger.Error(
-        $"Error during WebSocket shutdown: {ex.Message}");
+        $"WebSocket shutdown error: {ex}");
 }
 
-Logger.Success(
-    "Shutdown complete.");
-
-return;
+Logger.Success("Shutdown complete.");
 
 static async Task RunFileModeAsync(
     WebSocketServer webSocketServer)
@@ -213,6 +158,41 @@ static async Task RunFileModeAsync(
 
     while (running)
     {
+        if (player.IsFinished)
+        {
+            var action =
+                controller.ShowFinishedMenu();
+
+            switch (action)
+            {
+                case PlaybackController
+                        .PlaybackFinishedAction.Replay:
+
+                    player.Stop();
+
+                    await player.PlayAsync();
+
+                    break;
+
+                case PlaybackController
+                        .PlaybackFinishedAction.LoadNewFile:
+
+                    return;
+
+                case PlaybackController
+                        .PlaybackFinishedAction.MainMenu:
+
+                    return;
+
+                case PlaybackController
+                        .PlaybackFinishedAction.Quit:
+
+                    Environment.Exit(0);
+
+                    break;
+            }
+        }
+
         var key =
             Console.ReadKey(true);
 
@@ -220,12 +200,16 @@ static async Task RunFileModeAsync(
         {
             case ConsoleKey.Q:
 
+                Environment.Exit(0);
+
+                break;
+            case ConsoleKey.M:
+
                 controller.Stop();
 
                 running = false;
 
                 break;
-
             default:
 
                 await controller.HandleInputAsync(
@@ -234,4 +218,45 @@ static async Task RunFileModeAsync(
                 break;
         }
     }
+}
+
+static async Task RunLiveModeAsync(
+    WebSocketServer webSocketServer)
+{
+    var midiManager =
+        new MidiManager();
+
+    var midiHandler =
+        new MidiEventHandler(
+            webSocketServer);
+
+    midiHandler.Subscribe(
+        midiManager);
+
+    midiManager.Initialize();
+
+    Logger.Success(
+        "Live MIDI mode started.");
+
+    Logger.Info(
+        "Press M for Main Menu.");
+
+    bool running = true;
+
+    while (running)
+    {
+        var key =
+            Console.ReadKey(true);
+
+        switch (key.Key)
+        {
+            case ConsoleKey.M:
+
+                running = false;
+
+                break;
+        }
+    }
+
+    midiManager.Shutdown();
 }
