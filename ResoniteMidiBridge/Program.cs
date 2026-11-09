@@ -35,7 +35,7 @@ var midiEventHandler =
 
 midiEventHandler.Subscribe(midiManager);
 
-Task.Run(async () =>
+var webSocketTask = Task.Run(async () =>
 {
     try
     {

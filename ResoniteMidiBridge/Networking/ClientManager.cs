@@ -12,6 +12,9 @@ public class ClientManager
 
     private readonly object _clientLock = new();
 
+    private readonly SemaphoreSlim _sendLock =
+    new(1, 1);
+
     public void AddClient(WebSocket client)
     {
         lock (_clientLock)
@@ -52,8 +55,7 @@ public class ClientManager
 
         foreach (var client in clients)
         {
-            Logger.Debug(
-                $"Broadcasting to {clients.Count} clients");
+            await _sendLock.WaitAsync();
 
             try
             {
@@ -69,12 +71,9 @@ public class ClientManager
                     true,
                     CancellationToken.None);
             }
-            catch (Exception ex)
+            finally
             {
-                Logger.Error(
-                    $"Client send failed: {ex.Message}");
-
-                disconnectedClients.Add(client);
+                _sendLock.Release();
             }
         }
 

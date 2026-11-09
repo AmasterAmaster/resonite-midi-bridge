@@ -404,8 +404,12 @@ public class MidiFilePlayer
         Logger.Debug(
             $"FILE => {json}");
 
-        await _webSocketServer
-            .BroadcastAsync(json);
+        if (_webSocketServer.ClientManager.Clients.Count == 0)
+        {
+            return;
+        }
+
+        await _webSocketServer.BroadcastAsync(json);
     }
 
     public PlaybackStatus GetStatus()

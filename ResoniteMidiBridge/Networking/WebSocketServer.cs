@@ -50,7 +50,8 @@ public class WebSocketServer
     private async Task HandleClientAsync(HttpListenerContext context)
     {
         WebSocketContext wsContext =
-            await context.AcceptWebSocketAsync(null);
+            await context.AcceptWebSocketAsync(
+                subProtocol: null);
 
         WebSocket socket = wsContext.WebSocket;
 
